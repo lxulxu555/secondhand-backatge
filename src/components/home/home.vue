@@ -1,6 +1,5 @@
 <template>
   <el-container>
-
     <el-header>
       <img src="../../assets/euraisa-logo.png"/>
       <h2>Eurasis二手交易后台管理系统</h2>
@@ -30,7 +29,7 @@
       <el-aside>
         <el-menu
           router
-          default-active="2"
+          :default-active="$route.path"
           class="el-menu-vertical-demo"
           background-color="#545c64"
           text-color="#fff"
@@ -45,6 +44,7 @@
       </el-container>
     </el-container>
   </el-container>
+
 </template>
 
 
