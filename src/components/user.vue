@@ -1,5 +1,10 @@
 <template>
-    <div>dddd</div>
+    <div>
+      dddd
+      啊违法违法
+      阿尔发给我个
+    </div>
+
 </template>
 
 <script>
