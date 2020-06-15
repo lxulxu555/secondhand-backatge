@@ -48,15 +48,14 @@
 </template>
 
 
-<script type="text/jsx">
+<script>
   import {mapActions, mapState} from 'vuex';
   import HomeLeft from "./home-left";
   import menuList from '../../util/menuConfig'
-  import User from '../user'
 
 
   export default {
-    components: {HomeLeft, User},
+    components: {HomeLeft},
     data() {
       return {
         gettime: '',//当前时间

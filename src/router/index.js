@@ -1,9 +1,12 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import home from '../components/home/home'
-import user from '../components/user'
+import user from '../components/user/user'
 import login from '../components/login/login'
-import store from '../store/index'
+import category from "../components/category/category";
+import admin from '../components/admin/admin'
+import role from "../components/role/role";
+import jurisdiction from "../components/jurisdiction/jurisdiction";
 
 Vue.use(Router)
 
@@ -25,7 +28,27 @@ const router = new Router({
           path: '/user',
           name: 'user',
           component: user
-        }
+        },
+        {
+          path: '/admin',
+          name: 'admin',
+          component: admin
+        },
+        {
+          path: '/category',
+          name: 'category',
+          component: category
+        },
+        {
+          path: '/role',
+          name: 'role',
+          component: role
+        },
+        {
+          path: '/jurisdiction',
+          name: 'jurisdiction',
+          component: jurisdiction
+        },
       ]
     },
   ],

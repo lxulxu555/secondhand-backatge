@@ -6,8 +6,9 @@ var service = axios.create({
   baseURL: 'http://47.93.240.205:8800/api/',
   timeout: 5000,
   headers: {
-    'content-type': 'application/json',
-    /*'token' : ''*/
+    'Content-type': 'application/json',
+    'contentType': 'application/x-www-form-urlencoded',
+    'token' : localStorage.getItem('userToken')
   }
 })
 export default {
@@ -74,5 +75,69 @@ export default {
       })
 
     })
-  }
+  },
+
+  put(url, param) {
+    return new Promise((cback, reject) => {
+      service({
+        method: 'put',
+        url,
+        data: param,
+      }).then(res => {
+        //axios返回的是一个promise对象
+        var res_code = res.status.toString();
+        if (res_code.charAt(0) == 2) {
+          cback(res);   //cback在promise执行器内部
+        } else {
+          console.log(res, '异常1')
+        }
+      }).catch(err => {
+        if (!err.response) {
+          console.log('请求错误')
+          //Message是element库的组件，可以去掉
+          Message({
+            showClose: true,
+            message: '请求错误',
+            type: 'error'
+          });
+        } else {
+          reject(err.response);
+          console.log(err.response, '异常2')
+        }
+      })
+
+    })
+  },
+
+  delete(url, param) {
+    return new Promise((cback, reject) => {
+      service({
+        method: 'delete',
+        url,
+        params: param,
+      }).then(res => {
+        //axios返回的是一个promise对象
+        var res_code = res.status.toString();
+        if (res_code.charAt(0) == 2) {
+          cback(res);   //cback在promise执行器内部
+        } else {
+          console.log(res, '异常1')
+        }
+      }).catch(err => {
+        if (!err.response) {
+          console.log('请求错误')
+          //Message是element库的组件，可以去掉
+          Message({
+            showClose: true,
+            message: '请求错误',
+            type: 'error'
+          });
+        } else {
+          reject(err.response);
+          console.log(err.response, '异常2')
+        }
+      })
+
+    })
+  },
 }

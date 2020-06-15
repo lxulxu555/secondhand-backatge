@@ -5,6 +5,11 @@ const menuList = [
     icon : 'el-icon-user-solid',
   },
   {
+    title : '管理员管理',
+    key : '/admin',
+    icon : 'el-icon-s-tools',
+  },
+  {
     title : '商品',
     key : '/products',
     icon : 'el-icon-s-goods',
@@ -22,37 +27,15 @@ const menuList = [
     ]
   },
   {
-    title : '用户管理',
-    key : '/userss',
-    icon : 'user',
-  },
-  {
     title : '角色管理',
     key : '/role',
-    icon : 'safety'
+    icon : 'el-icon-lock',
   },
   {
-    title : '图形图表',
-    key : '/charts',
-    icon : 'area-chart',
-    children: [
-      {
-        title : '柱线图',
-        key : '/charts/bar',
-        icon : 'bar-chart'
-      },
-      {
-        title : '折线图',
-        key : '/charts/line',
-        icon : 'line-chart'
-      },
-      {
-        title : '饼图',
-        key : '/charts/pie',
-        icon : 'pie-chart'
-      },
-    ]
-  },
+    title : '权限管理',
+    key : '/jurisdiction',
+    icon : 'el-icon-key'
+  }
 ]
 
 export default menuList
