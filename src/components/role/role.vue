@@ -52,7 +52,6 @@
         :titles="['可添加权限','已添加权限']"
         @change="ChangeRole"
       />
-
     </el-dialog>
 
     <el-dialog title="添加角色" :visible.sync="dialogFormVisible" :before-close="closeExpertFormDialog">
@@ -106,7 +105,7 @@
       }
     },
     methods: {
-      getAdmin(page) {
+      getRole(page) {
         this.http.get('token/role/findByPage', {page, rows: 8}).then(res => {
           this.AllRole = res.data.data
           this.page = page
@@ -116,7 +115,7 @@
 
       CurrentChange(currentPage) {
         this.page = currentPage;
-        this.getAdmin(this.page) //点击第几页
+        this.getRole(this.page) //点击第几页
       },
 
       ClickAddJurisdiction(item) {
@@ -153,7 +152,7 @@
             }
           })
         }else{
-          this.http.delete('token/permission/delete', {permissionIds}).then(res => {
+          this.http.delete('token/role/deletePermissionToRole', {roleId,permissionIds}).then(res => {
             if(res.data.code === 0){
               this.$message.success(res.data.msg);
             }else{
@@ -169,7 +168,7 @@
         this.http.post('token/role/save', {roleName : RoleName,roleIntro : RoleIntro}).then(res => {
           if(res.data.code === 0){
             this.$message.success(res.data.msg);
-            this.getAdmin(this.page)
+            this.getRole(this.page)
           }else{
             this.$message.error(res.data.msg);
           }
@@ -179,7 +178,7 @@
       },
 
       DeleteRole(item){
-        this.$confirm('此操作将删除用户, 是否继续?', '提示', {
+        this.$confirm('此操作将删除角色, 是否继续?', '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning'
@@ -188,7 +187,7 @@
           this.http.delete('token/role/delete', {roleIds}).then(res => {
             if(res.data.code === 0){
               this.$message.success(res.data.msg);
-              this.getAdmin(this.page)
+              this.getRole(this.page)
             }else{
               this.$message.error(res.data.msg);
             }
@@ -211,7 +210,7 @@
 
 
     mounted() {
-      this.getAdmin(this.page)
+      this.getRole(this.page)
     }
   }
 </script>
