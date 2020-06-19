@@ -33,7 +33,7 @@
       onSubmit() {
         const username = this.form.name
         const password = this.form.password
-        this.http.post('user/loginAdmin',{username,password}).then(res => {
+        this.http.post('user/loginAdmin',{username,password},'post').then(res => {
           if(res.data.code === 0){
             this.Login(res.data.data)
             this.$router.push("/")

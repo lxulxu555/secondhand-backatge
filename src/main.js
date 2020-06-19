@@ -21,8 +21,8 @@ new Vue({
   router,
   //使用store
   store,
-  components: { App },
-  template: '<App/>'
+  template: '<App/>',
+  components: { App }
 })
 
 

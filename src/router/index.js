@@ -7,6 +7,8 @@ import category from "../components/category/category";
 import admin from '../components/admin/admin'
 import role from "../components/role/role";
 import jurisdiction from "../components/jurisdiction/jurisdiction";
+import product from "../components/category/product";
+import updateproduct from "../components/category/updateproduct";
 
 Vue.use(Router)
 
@@ -26,41 +28,55 @@ const router = new Router({
       children: [
         {
           path: '/user',
-          name: 'user',
-          component: user
+          name: '/user',
+          component: user,
         },
         {
           path: '/admin',
-          name: 'admin',
+          name: '/admin',
           component: admin
         },
         {
           path: '/category',
-          name: 'category',
+          name: '/category',
           component: category
         },
         {
           path: '/role',
-          name: 'role',
+          name: '/role',
           component: role
         },
         {
           path: '/jurisdiction',
-          name: 'jurisdiction',
+          name: '/jurisdiction',
           component: jurisdiction
+        },
+        {
+          path: '/product',
+          name: '/product',
+          component: product,
+          meta:{
+            keepAlive : true
+          }
+        },
+        {
+          path: '/product/update',
+          name: '/product',
+          component: updateproduct,
         },
       ]
     },
   ],
   mode: 'history',
 })
+
 //拦截器
 router.beforeEach((to,from,next)=>{
   if(to.path === '/login'){
     next()
   } else {
     let userInfo = localStorage.getItem("userInfo")
-    if(userInfo === 'null'){
+    if(!userInfo){
       next('/login');
     }else{
       next()

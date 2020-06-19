@@ -21,12 +21,6 @@
         <template slot-scope="scope">
           <el-button
             size="mini"
-            @click="ClickItem(scope.row)"
-          >
-            Edit
-          </el-button>
-          <el-button
-            size="mini"
             type="danger"
             @click="DeleteRole(scope.row)">删除
           </el-button>
@@ -63,6 +57,7 @@
       layout="prev, pager, next"
       :total="total"
       :current-page="page"
+      :page-size="8"
       @current-change="CurrentChange"
     >
     </el-pagination>
@@ -90,7 +85,7 @@
     },
     methods: {
       getJurisdiction(page) {
-        this.http.get('token/permission/findByPage', {page, rows: 8}).then(res => {
+        this.http.get('token/permission/findByPage', {page, rows: 8},'get').then(res => {
           this.AllJurisdiction = res.data.data
           this.page = page
           this.total = res.data.total
@@ -103,13 +98,13 @@
       },
 
       DeleteRole(item){
-        this.$confirm('此操作将删除权限, 是否继续?', '提示', {
+        this.$confirm(`此操作将删除权限${item.url}, 是否继续?`, '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning'
         }).then(() => {
           const roleIds = item.id
-          this.http.delete('token/permission/delete', {permissionIds : item.id}).then(res => {
+          this.http.delete('token/permission/delete', {permissionIds : item.id},'delete').then(res => {
             if(res.data.code === 0){
               this.$message.success(res.data.msg);
               this.getJurisdiction(this.page) //点击第几页
@@ -135,7 +130,7 @@
       },
 
       AddJurisdiction(){
-        this.http.post('token/permission/save', {name : this.form.name,url : this.form.region}).then(res => {
+        this.http.post('token/permission/save', {name : this.form.name,url : this.form.region},'post').then(res => {
           if(res.data.code === 0){
             this.$message.success(res.data.msg);
             this.getJurisdiction(this.page)
@@ -146,12 +141,14 @@
           this.dialogAdd = false; //关闭对话框
         })
       },
+
       //关闭dialog前
       closeExpertFormDialog(done){
         this.$refs["addJurisdiction"].resetFields();
         this.dialogAdd = false; //关闭对话框
         done();//done 用于关闭 Dialog
       },
+
     },
     mounted() {
       this.getJurisdiction(this.page)

@@ -40,6 +40,7 @@
       layout="prev, pager, next"
       :total="total"
       :current-page="page"
+      :page-size="8"
       @current-change="CurrentChange"
     >
     </el-pagination>
@@ -106,7 +107,7 @@
     },
     methods: {
       getRole(page) {
-        this.http.get('token/role/findByPage', {page, rows: 8}).then(res => {
+        this.http.get('token/role/findByPage', {page, rows: 8},'get').then(res => {
           this.AllRole = res.data.data
           this.page = page
           this.total = res.data.total
@@ -123,7 +124,7 @@
         this.roleId = item.id
         const initAllJurisdiction = []
         const initSelectJurisdiction = []
-        this.http.get('token/permission/findByPage',).then(res => {
+        this.http.get('token/permission/findByPage','','get').then(res => {
           res.data.data.map(item => {
             initAllJurisdiction.push({
               key: item.id,
@@ -132,7 +133,7 @@
           })
           this.AllJurisdiction = JSON.parse(JSON.stringify(initAllJurisdiction));
         })
-        this.http.get('token/role/findById', {id:item.id}).then(res => {
+        this.http.get('token/role/findById', {id:item.id},'get').then(res => {
           res.data.permissionList.map(item => {
             initSelectJurisdiction.push(item.id)
           })
@@ -144,7 +145,7 @@
         const roleId = this.roleId
         const permissionIds = movedKeys.toString()
         if(direction === 'right'){
-          this.http.post('token/role/addPermissionByRoleId', {roleId,permissionIds}).then(res => {
+          this.http.post('token/role/addPermissionByRoleId', {roleId,permissionIds},'post').then(res => {
             if(res.data.code === 0){
               this.$message.success(res.data.msg);
             }else{
@@ -152,7 +153,7 @@
             }
           })
         }else{
-          this.http.delete('token/role/deletePermissionToRole', {roleId,permissionIds}).then(res => {
+          this.http.delete('token/role/deletePermissionToRole', {roleId,permissionIds},'delete').then(res => {
             if(res.data.code === 0){
               this.$message.success(res.data.msg);
             }else{
@@ -165,7 +166,7 @@
 
       AddRole(){
         const {RoleName,RoleIntro} = this.form
-        this.http.post('token/role/save', {roleName : RoleName,roleIntro : RoleIntro}).then(res => {
+        this.http.post('token/role/save', {roleName : RoleName,roleIntro : RoleIntro},'post').then(res => {
           if(res.data.code === 0){
             this.$message.success(res.data.msg);
             this.getRole(this.page)
@@ -178,13 +179,13 @@
       },
 
       DeleteRole(item){
-        this.$confirm('此操作将删除角色, 是否继续?', '提示', {
+        this.$confirm(`此操作将删除${item.roleName}, 是否继续?`, '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning'
         }).then(() => {
           const roleIds = item.id
-          this.http.delete('token/role/delete', {roleIds}).then(res => {
+          this.http.delete('token/role/delete', {roleIds},'delete').then(res => {
             if(res.data.code === 0){
               this.$message.success(res.data.msg);
               this.getRole(this.page)

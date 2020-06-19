@@ -11,7 +11,7 @@
            <i class="el-icon-arrow-down el-icon--right"></i>
         </span>
         <el-dropdown-menu slot="dropdown">
-          <el-dropdown-item >退出账户</el-dropdown-item>
+          <el-dropdown-item>退出账户</el-dropdown-item>
         </el-dropdown-menu>
       </el-dropdown>
 
@@ -29,7 +29,7 @@
       <el-aside>
         <el-menu
           router
-          :default-active="$route.path"
+          :default-active="$route.name"
           class="el-menu-vertical-demo"
           background-color="#545c64"
           text-color="#fff"
@@ -39,7 +39,10 @@
       </el-aside>
       <el-container>
         <el-main>
-          <router-view/>
+          <router-view v-if="!$route.meta.keepAlive"></router-view>
+          <keep-alive>
+            <router-view v-if="$route.meta.keepAlive"></router-view>
+          </keep-alive>
         </el-main>
       </el-container>
     </el-container>
@@ -75,7 +78,8 @@
     },
 
     methods: {
-      ...mapActions(['Login']),
+      ...mapActions(['Login','SaveJurisdiction']),
+      ...mapState(['UserInfo']),
 
       getTime: function () {
         var _this = this;
@@ -111,6 +115,7 @@
     mounted() {
       this.currentTime()
       this.getWeather()
+      this.SaveJurisdiction(JSON.parse(this.UserInfo()))
     },
   }
 </script>
@@ -153,10 +158,12 @@
     cursor: pointer;
     color: #409EFF;
   }
+
   .el-icon-arrow-down {
     font-size: 12px;
   }
-  .el-dropdown{
+
+  .el-dropdown {
     margin-right: 50px;
   }
 </style>

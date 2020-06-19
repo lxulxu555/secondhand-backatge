@@ -19,7 +19,7 @@
       <el-table-column
         align="right">
         <template slot="header" slot-scope="scope">
-          <el-button type="primary">添加分类</el-button>
+          <el-button type="primary" @click="ClickUpdateClass('add')">添加分类</el-button>
         </template>
         <template slot-scope="scope">
           <el-button
@@ -39,7 +39,7 @@
           <el-button
             size="mini"
             type="danger"
-            @click="handleDelete(scope.$index, scope.row)"
+            @click="DeleteClass(scope.row)"
           >
             删除
           </el-button>
@@ -69,14 +69,25 @@
     >
     </el-pagination>
 
-    <el-dialog title="修改分类" :visible.sync="UpdateOneClass">
+    <el-dialog title="修改分类" :visible.sync="UpdateOneClass" :before-close="closeExpertFormDialog">
       <el-form :model="form">
-        <el-form-item label="一级分类名称" :label-width="formLabelWidth">
+        <el-form-item label="分类名称" :label-width="formLabelWidth" prop="name">
           <el-input v-model="form.className" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="分类图片" :label-width="formLabelWidth" prop="image">
+          <el-upload
+            class="avatar-uploader"
+            action="http://eurasia.plus:8800/api/upload/image"
+            :show-file-list="false"
+            :on-success="handleAvatarSuccess"
+            :before-upload="beforeAvatarUpload">
+            <img v-if="form.imageUrl" :src="form.imageUrl" class="avatar">
+            <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+          </el-upload>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogFormVisible = false">取 消</el-button>
+        <el-button @click="closeExpertFormDialog">取 消</el-button>
         <el-button type="primary" @click="SendUpdateName">确 定</el-button>
       </div>
     </el-dialog>
@@ -84,23 +95,26 @@
   </div>
 </template>
 
-<script type="text/jsx">
+<script>
   export default {
     name: "category",
     data() {
       return {
         Class: [],
-        TwoClass:[],
+        TwoClass: [],
         pagesize: 8,    //    每页的数据　　
         currentPage: 1, //初始页
-        TwoPage:1,
+        TwoPage: 1,
         UpdateOneClass: false,
         form: {
-          className: ''
+          className: '',
+          imageUrl: ''
         },
         formLabelWidth: '100px',
         OneClassId: '',
         isOne: true,
+        type:'',
+        oneClassId:'',
       }
     },
     computed: {
@@ -114,7 +128,7 @@
 
     methods: {
       getClass() {
-        this.http.get('classify1/findClassify1').then(res => {
+        this.http.get('classify1/findClassify1', '', 'get').then(res => {
           this.Class = res.data
           this.isOne = true
         })
@@ -124,27 +138,66 @@
         this.currentPage = currentPage;
       },
 
-      CurrentTwoChange(currentPage){
+      CurrentTwoChange(currentPage) {
         this.TwoPage = currentPage
       },
 
       ClickUpdateClass(item) {
         this.UpdateOneClass = true
+        this.type = item
         this.OneClassId = item.id
         this.form.className = item.name
+        this.form.imageUrl = item.image
       },
 
       SendUpdateName() {
         this.UpdateOneClass = false
+        const {isOne,type} = this
         const id = this.OneClassId
         const name = this.form.className
-        this.http.put('classify1/update', {id, name}).then(res => {
-          if (res.data.code === 0) {
-            this.$message.success(res.data.msg);
-          } else {
-            this.$message.error(res.data.msg);
+        const image = this.form.imageUrl
+        if(isOne === true){
+          if(type !== 'add'){
+            this.http.put('classify1/update', {id, name,image}, 'put').then(res => {
+              if (res.data.code === 0) {
+                this.$message.success(res.data.msg);
+                this.getClass()
+              } else {
+                this.$message.error(res.data.msg);
+              }
+            })
+          }else{
+            this.http.post('classify1/add', {name,image}, 'post').then(res => {
+              if (res.data.code === 0) {
+                this.$message.success(res.data.msg);
+                this.getClass()
+              } else {
+                this.$message.error(res.data.msg);
+              }
+            })
           }
-        })
+        }else {
+          const classify1id = this.oneClassId
+          if (type !== 'add') {
+            this.http.put('classify2/update', {id, name,classify1id,image}, 'put').then(res => {
+              if (res.data.code === 0) {
+                this.$message.success(res.data.msg);
+                this.GetTwoDetail(classify1id)
+              } else {
+                this.$message.error(res.data.msg);
+              }
+            })
+          } else {
+            this.http.post('classify2/add', {name,classify1id,image}, 'post').then(res => {
+              if (res.data.code === 0) {
+                this.$message.success(res.data.msg);
+                this.GetTwoDetail(classify1id)
+              } else {
+                this.$message.error(res.data.msg);
+              }
+            })
+          }
+        }
       },
 
       back() {
@@ -153,12 +206,71 @@
       },
 
       GetTwoDetail(item) {
-        this.http.get('classify1/findChildById', {id: item.id}).then(res => {
+        this.oneClassId = !item.id ? item : item.id
+        this.http.get('classify1/findChildById', {id: this.oneClassId}, 'get').then(res => {
+          console.log(res)
           this.TwoClass = res.data
           this.isOne = false
         })
-      }
+      },
 
+      DeleteClass(item) {
+        this.$confirm(`此操作将删除分类${item.name}, 是否继续?`, '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          const isOne = this.isOne
+          if(isOne === true){
+            this.http.get('classify1/delete', {id: item.id}, 'get').then(res => {
+              if (res.data.code === 0) {
+                this.$message.success(res.data.msg);
+                this.getClass(this.page) //点击第几页
+              } else {
+                this.$message.error(res.data.msg);
+              }
+            })
+          }else{
+            this.http.get('classify2/delete', {id: item.id}, 'get').then(res => {
+              if (res.data.code === 0) {
+                this.$message.success(res.data.msg);
+                this.GetTwoDetail(this.oneClassId) //点击第几页
+              } else {
+                this.$message.error(res.data.msg);
+              }
+            })
+          }
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          });
+        });
+      },
+
+      handleAvatarSuccess(res, file) {
+        this.form.imageUrl = file.response.data.thumbnailUrl
+      },
+
+      beforeAvatarUpload(file) {
+        const isJPG = file.type === 'image/jpeg';
+        const isLt2M = file.size / 1024 / 1024 < 2;
+
+        if (!isJPG) {
+          this.$message.error('上传头像图片只能是 JPG 格式!');
+        }
+        if (!isLt2M) {
+          this.$message.error('上传头像图片大小不能超过 2MB!');
+        }
+        return isJPG && isLt2M;
+      },
+
+      //关闭dialog前
+      closeExpertFormDialog(done){
+        this.form.imageUrl = ''
+        this.UpdateOneClass = false
+        done();//done 用于关闭 Dialog
+      },
     },
 
     mounted() {
@@ -192,5 +304,29 @@
 
   .el-table {
     width: 100%;
+  }
+
+  .avatar-uploader .el-upload {
+    border: 1px dashed #d9d9d9;
+    border-radius: 6px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  .avatar-uploader .el-upload:hover {
+    border-color: #409EFF;
+  }
+  .avatar-uploader-icon {
+    font-size: 28px;
+    color: #8c939d;
+    width: 178px;
+    height: 178px;
+    line-height: 178px;
+    text-align: center;
+  }
+  .avatar {
+    width: 178px;
+    height: 178px;
+    display: block;
   }
 </style>

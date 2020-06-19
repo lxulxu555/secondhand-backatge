@@ -20,17 +20,18 @@
 
       <el-table-column
         align="right">
+
         <template slot-scope="scope">
           <el-button
             size="mini"
             @click="ClickItem(scope.row)"
           >
-            Edit
+            编辑
           </el-button>
           <el-button
             size="mini"
             type="danger"
-            @click="handleDelete(scope.$index, scope.row)">Delete
+            @click="DeleteUser(scope.row)">删除
           </el-button>
         </template>
       </el-table-column>
@@ -40,12 +41,14 @@
       layout="prev, pager, next"
       :total="total"
       :current-page="page"
+      :page-size="8"
       @current-change="CurrentChange"
     >
     </el-pagination>
 
     <el-dialog title="编辑角色" :visible.sync="dialogFormVisible">
-      <el-form :model="form">
+
+      <el-form :model="form" ref="updateUser">
         <el-form-item label="用户名" :label-width="formLabelWidth">
           <el-input v-model="form.username" autocomplete="off"></el-input>
         </el-form-item>
@@ -56,16 +59,21 @@
           <el-input v-model="form.phone" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="用户身份" :label-width="formLabelWidth">
-          <el-select v-model="form.region" placeholder="请选择用户身份">
-            <el-option label="管理员" value="administrators"></el-option>
-            <el-option label="超级管理员" value="superadministrators"></el-option>
+          <el-select v-model="form.region" placeholder="请选择权限接口" @change="selectTrigger(form.region)">
+            <el-option
+              v-for="item in options"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value">
+            </el-option>
           </el-select>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible = false">取 消</el-button>
-        <el-button type="primary" @click="dialogFormVisible = false">确 定</el-button>
+        <el-button type="primary" @click="updateUser">确 定</el-button>
       </div>
+
     </el-dialog>
 
   </div>
@@ -77,43 +85,98 @@
     data() {
       return {
         AllUser: [],
-        page:1,
-        total:0,
+        page: 1,
+        total: 0,
         dialogFormVisible: false,
         form: {
+          id: '',
           username: '',
-          email:'',
-          phone:'',
+          email: '',
+          phone: '',
           region: '',
         },
+        options: [{
+          label: '管理员',
+          value: 'admin'
+        }, {
+          label: '普通用户',
+          value: 'user'
+        }],
         formLabelWidth: '100px'
       }
     },
     methods: {
 
       getAllUser(page) {
-        this.http.get('user/findAll', {page, rows: 8}).then(res => {
+        this.http.get('user/findAll', {page, rows: 8}, 'get').then(res => {
           this.AllUser = res.data.data
           this.page = page
           this.total = res.data.total
         })
       },
 
-      CurrentChange(currentPage){
+      CurrentChange(currentPage) {
         this.page = currentPage;
         this.getAllUser(this.page) //点击第几页
       },
 
-      ClickItem(item){
+      ClickItem(item) {
+        const isUserOrAdmin = item.sex === '管' ? 'admin' : 'user'
         this.dialogFormVisible = true
+        this.form.id = item.id
         this.form.username = item.username
         this.form.email = item.email
         this.form.phone = item.phone
-      }
-    },
-    mounted() {
-      this.getAllUser(this.page)
+        this.form.region = isUserOrAdmin
+      },
+
+      selectTrigger(val) {
+        this.form.region = val
+      },
+
+      DeleteUser(item) {
+        this.$confirm(`此操作将删除${item.username}, 是否继续?`, '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          const ids = item.id
+          this.http.delete('user/delete', {ids}, 'delete').then(res => {
+            if (res.data.code === 0) {
+              this.$message.success(res.data.msg);
+              this.getAllUser(this.page)
+            } else {
+              this.$message.error(res.data.msg);
+            }
+          })
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          });
+        });
+      },
+
+      updateUser() {
+        const {id, username, email, phone, region} = this.form
+        const sex = region === 'admin' ? '管' : '男'
+        this.http.put('user/update', {id, username, phone, email, sex}, 'put').then(res => {
+          if (res.data.code === 0) {
+            this.$message.success(res.data.msg);
+            this.getAllUser(this.page)
+          } else {
+            this.$message.error(res.data.msg);
+          }
+          this.$refs["updateUser"].resetFields();
+          this.dialogFormVisible = false
+        })
     }
+  }
+  ,
+  mounted()
+  {
+    this.getAllUser(this.page)
+  }
   }
 </script>
 

@@ -13,10 +13,10 @@ module.exports = {
 
     proxyTable: {
       '/api': {
-        target: "http://47.93.240.205:8800/api",
+        target: "http://47.93.240.205:8800",
         changeOrigin: true,
         pathRewrite: {
-          '^/api': ''
+          '^/api': '/api'  // 这种接口配置出来     http://XX.XX.XX.XX:8083/api/login
         }
       }
     },
