@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { Message } from 'element-ui';  //element库的消息提示，可以不用
+import {Message} from 'element-ui';  //element库的消息提示，可以不用
 import router from "../router";
 import store from '../store'
 
@@ -10,25 +10,31 @@ var service = axios.create({
   headers: {
     'Content-type': 'application/json',
     'contentType': 'application/x-www-form-urlencoded',
-    'token' : localStorage.getItem('userToken')
+    'token': localStorage.getItem('userToken')
   }
 })
 export default {
-  params(url,param,cback,reject,method){
+  params(url, param, cback, reject, method) {
     service({
       method: method,
       url,
-      [method === 'get' || method === 'delete' ? 'params' : 'data'] : param,
+      [method === 'get' || method === 'delete' ? 'params' : 'data']: param,
     }).then(res => {
       //axios返回的是一个promise对象
       var res_code = res.status.toString();
       if (res_code.charAt(0) == 2) {
         cback(res);   //cback在promise执行器内部
+        const code = res.data.code
+        if (code === 0) {
+          Message.success(res.data.msg);
+        } else {
+          Message.error(res.data.msg);
+        }
       } else {
         console.log(res, '异常1')
       }
     }).catch(err => {
-      if(err.response.data.msg === '请登录'){
+      if (err.response.data.msg === '请登录') {
         Message({
           showClose: true,
           message: '您的身份已过期，请重新登录',
@@ -36,7 +42,7 @@ export default {
         });
         store.dispatch('Login', null);
         router.push("/login");
-      }else if(err.response.data.msg === '授权不足'){
+      } else if (err.response.data.msg === '授权不足') {
         Message({
           showClose: true,
           message: '您的权限不足，如有需要，请联系开发人员',
@@ -47,27 +53,27 @@ export default {
   },
 
   //get请求，其他类型请求复制粘贴，修改method
-  get(url, param,method) {
+  get(url, param, method) {
     return new Promise((cback, reject) => {
-      this.params(url,param,cback,reject,method)
+      this.params(url, param, cback, reject, method)
     })
   },
 
-  post(url, param,method) {
+  post(url, param, method) {
     return new Promise((cback, reject) => {
-      this.params(url,param,cback,reject,method)
+      this.params(url, param, cback, reject, method)
     })
   },
 
-  put(url, param,method) {
+  put(url, param, method) {
     return new Promise((cback, reject) => {
-      this.params(url,param,cback,reject,method)
+      this.params(url, param, cback, reject, method)
     })
   },
 
-  delete(url, param,method) {
+  delete(url, param, method) {
     return new Promise((cback, reject) => {
-      this.params(url,param,cback,reject,method)
+      this.params(url, param, cback, reject, method)
     })
   },
 }

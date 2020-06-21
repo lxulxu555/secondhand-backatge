@@ -79,6 +79,9 @@
 </template>
 
 <script>
+  import {getAdmin, getRole,FindRoleById,AddRoleToUser,DeleteRoleToUser,AddAdmin} from '../../api'
+  import {deleteMessage} from '../../util/PublicFunction'
+
   export default {
     name: "admin",
     data() {
@@ -90,22 +93,21 @@
         selectRole: [],
         AllRole: [],
         userId: '',
-        formLabelWidth : '120px',
-        dialogAddAdmin:false,
-        form:{
-          username:'',
-          password:''
+        formLabelWidth: '120px',
+        dialogAddAdmin: false,
+        form: {
+          username: '',
+          password: ''
         }
       }
     },
     methods: {
 
-      getAdmin(page) {
-        this.http.get('user/findAll', {page, rows: 8, admin: 'admin'},'get').then(res => {
-          this.AllAdmin = res.data.data
-          this.page = page
-          this.total = res.data.total
-        })
+      async getAdmin(page) {
+        const result = await getAdmin({page, rows: 8, admin: 'admin'}, 'get')
+        this.AllAdmin = result.data
+        this.page = page
+        this.total = result.total
       },
 
       CurrentChange(currentPage) {
@@ -113,86 +115,52 @@
         this.getAdmin(this.page) //点击第几页
       },
 
-      ClickAddAdminFromRole(item) {
+      async ClickAddAdminFromRole(item) {
         this.clickAddAdminFromRole = true
         this.userId = item.id
         const initAllRole = []
         const initSelectRole = []
         /*查找所有角色*/
-        this.http.get('token/role/findByPage','','get').then(res => {
-          res.data.data.map(item => {
-            initAllRole.push({
-              key: item.id,
-              label: item.roleName
-            })
+        const Allrole = await getRole('', 'get')
+        Allrole.data.map(item => {
+          initAllRole.push({
+            key: item.id,
+            label: item.roleName
           })
-          this.AllRole = JSON.parse(JSON.stringify(initAllRole));
         })
+        this.AllRole = JSON.parse(JSON.stringify(initAllRole));
         /*查找该角色已有的角色*/
-        this.http.get('user/findRoleById', {id: item.id},'get').then(res => {
-          res.data.roleList.map(item => {
-            initSelectRole.push(item.id)
-          })
-          this.selectRole = initSelectRole
+        const findRoleById = await FindRoleById({id: item.id},'get')
+        findRoleById.roleList.map(item => {
+          initSelectRole.push(item.id)
         })
+        this.selectRole = initSelectRole
       },
 
       ChangeRole(value, direction, movedKeys) {
         const userId = parseInt(this.userId)
         const roleIds = movedKeys.toString()
         if (direction === 'right') {
-          this.http.post('user/addRoleToUser', {userId, roleIds},'post').then(res => {
-            if (res.data.code === 0) {
-              this.$message.success(res.data.msg);
-            } else {
-              this.$message.error(res.data.msg);
-            }
-          })
+          AddRoleToUser({userId, roleIds},'post')
         } else {
-          this.http.delete('user/deleteRoleToUser', {userId, roleIds},'delete').then(res => {
-            if (res.data.code === 0) {
-              this.$message.success(res.data.msg);
-            } else {
-              this.$message.error(res.data.msg);
-            }
-          })
+          DeleteRoleToUser({userId, roleIds}, 'delete')
         }
       },
 
-      DeleteAdmin(item) {
-        this.$confirm(`此操作将删除${item.username}, 是否继续?`, '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }).then(() => {
-          const ids = item.id
-          this.http.delete('user/delete', {ids},'delete').then(res => {
-            if (res.data.code === 0) {
-              this.$message.success(res.data.msg);
-              this.getAdmin(this.page)
-            } else {
-              this.$message.error(res.data.msg);
-            }
-          })
-        }).catch(() => {
-          this.$message({
-            type: 'info',
-            message: '已取消删除'
-          });
-        });
+      async DeleteAdmin(item) {
+       const result = await deleteMessage(item.id)
+        if(result.code === 0){
+          this.getAdmin(this.page)
+        }
       },
 
-      ClickAddAdmin(){
-        const {username,password} = this.form
-        this.http.post('user/saveAdmin',{username,password},'post').then(res => {
-          if (res.data.code === 0) {
-            this.$message.success(res.data.msg);
-            this.getAdmin(this.page)
-            this.dialogAddAdmin = false
-          } else {
-            this.$message.error(res.data.msg);
-          }
-        })
+      async ClickAddAdmin() {
+        const {username, password} = this.form
+        const result = await AddAdmin({username, password}, 'post')
+        if(result.code === 0){
+          this.getAdmin(this.page)
+          this.dialogAddAdmin = false
+        }
       },
 
       //关闭dialog前

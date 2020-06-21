@@ -148,7 +148,7 @@
         const images = ImageData.toString()
         const {name, intro, price1, state, classify2_id, id} = this.productInfo
         const twoClassId = this.form.TwoClassId === '' ? classify2_id : this.form.TwoClassId
-        this.http.put('goods/update', {name, intro, price1, state, twoClassId, images}, 'put').then(res => {
+        this.http.put('goods/update', {id,name, intro, price1, state, twoClassId, images}, 'put').then(res => {
           if (res.data.code === 0) {
             this.$message.success(res.data.msg);
             this.$router.go(-1)

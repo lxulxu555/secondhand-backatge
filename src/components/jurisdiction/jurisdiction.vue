@@ -30,7 +30,7 @@
 
     <el-dialog title="添加权限" :visible.sync="dialogAdd" :before-close="closeExpertFormDialog">
 
-      <el-form :model="form"  ref="addJurisdiction">
+      <el-form :model="form" ref="addJurisdiction">
         <el-form-item label="权限介绍" :label-width="formLabelWidth">
           <el-input v-model="form.name" autocomplete="off" disabled></el-input>
         </el-form-item>
@@ -47,7 +47,7 @@
       </el-form>
 
       <div slot="footer" class="dialog-footer">
-        <el-button @click="closeExpertFormDialog" >取 消</el-button>
+        <el-button @click="closeExpertFormDialog">取 消</el-button>
         <el-button type="primary" @click="AddJurisdiction" :disabled="form.name === ''">确 定</el-button>
       </div>
     </el-dialog>
@@ -66,7 +66,8 @@
 </template>
 
 <script>
-  import {mapState} from 'vuex';
+  import {getPermission,AddPermision} from '../../api'
+  import {deleteMessage} from '../../util/PublicFunction'
 
   export default {
     name: "jurisdiction",
@@ -75,21 +76,20 @@
         AllJurisdiction: [],
         page: 1,
         total: 0,
-        dialogAdd:false,
+        dialogAdd: false,
         form: {
           name: '',
           region: '',
         },
-        formLabelWidth:'120px',
+        formLabelWidth: '120px',
       }
     },
     methods: {
-      getJurisdiction(page) {
-        this.http.get('token/permission/findByPage', {page, rows: 8},'get').then(res => {
-          this.AllJurisdiction = res.data.data
-          this.page = page
-          this.total = res.data.total
-        })
+      async getJurisdiction(page) {
+        const result = await getPermission({page, rows: 8}, 'get')
+        this.AllJurisdiction = result.data
+        this.page = page
+        this.total = result.total
       },
 
       CurrentChange(currentPage) {
@@ -97,54 +97,34 @@
         this.getJurisdiction(this.page) //点击第几页
       },
 
-      DeleteRole(item){
-        this.$confirm(`此操作将删除权限${item.url}, 是否继续?`, '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }).then(() => {
-          const roleIds = item.id
-          this.http.delete('token/permission/delete', {permissionIds : item.id},'delete').then(res => {
-            if(res.data.code === 0){
-              this.$message.success(res.data.msg);
-              this.getJurisdiction(this.page) //点击第几页
-            }else{
-              this.$message.error(res.data.msg);
-            }
-          })
-        }).catch(() => {
-          this.$message({
-            type: 'info',
-            message: '已取消删除'
-          });
-        });
+      async DeleteRole(item) {
+        const result = await deleteMessage(item.id,'permission')
+        if(result.code === 0){
+          this.getJurisdiction(this.page) //点击第几页
+        }
       },
 
-      selectTrigger(val){
+      selectTrigger(val) {
         this.form.name = val
         let obj = {};
-        obj = this.options.find((item)=>{//这里的userList就是上面遍历的数据源
+        obj = this.options.find((item) => {//这里的userList就是上面遍历的数据源
           return item.value === val;//筛选出匹配数据
         });
         this.form.region = obj.label
       },
 
-      AddJurisdiction(){
-        this.http.post('token/permission/save', {name : this.form.name,url : this.form.region},'post').then(res => {
-          if(res.data.code === 0){
-            this.$message.success(res.data.msg);
-            this.getJurisdiction(this.page)
-          }else{
-            this.$message.error(res.data.msg);
-          }
-          this.$refs["addJurisdiction"].resetFields();
+      async AddJurisdiction() {
+        const result = await AddPermision({name: this.form.name, url: this.form.region}, 'post')
+        if(result.code === 0){
+          this.getJurisdiction(this.page)
+          this.form.region = ''
           this.dialogAdd = false; //关闭对话框
-        })
+        }
       },
 
       //关闭dialog前
-      closeExpertFormDialog(done){
-        this.$refs["addJurisdiction"].resetFields();
+      closeExpertFormDialog(done) {
+        this.form.region = ''
         this.dialogAdd = false; //关闭对话框
         done();//done 用于关闭 Dialog
       },

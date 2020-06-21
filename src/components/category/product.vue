@@ -40,6 +40,9 @@
 </template>
 
 <script>
+  import {getAllProduct} from '../../api'
+  import {deleteMessage} from '../../util/PublicFunction'
+
   export default {
     name: "product",
     data() {
@@ -50,12 +53,11 @@
       }
     },
     methods: {
-      getAllProduct(page) {
-        this.http.get('goods/findByPage', {page, rows: 8}, 'get').then(res => {
-          this.AllProduct = res.data.data
-          this.page = page
-          this.total = res.data.total
-        })
+      async getAllProduct(page) {
+        const result = await getAllProduct({page, rows: 8}, 'get')
+        this.AllProduct = result.data
+        this.page = page
+        this.total = result.total
       },
 
       CurrentChange(currentPage) {
@@ -64,37 +66,20 @@
       },
 
 
-      DeleteProduct(item) {
-        this.$confirm(`此操作将删除商品${item.name}, 是否继续?`, '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }).then(() => {
-          const id = item.id
-          this.http.get('goods/deleteGoods', {id}, 'get').then(res => {
-            if (res.data.code === 0) {
-              this.$message.success(res.data.msg);
-              this.getAllProduct(this.page)
-            } else {
-              this.$message.error(res.data.msg);
-            }
-          })
-        }).catch(() => {
-          this.$message({
-            type: 'info',
-            message: '已取消删除'
-          })
-        })
+      async DeleteProduct(item) {
+        const result = await deleteMessage(item.id,'product')
+        if(result.code === 0){
+          this.getAllProduct(this.page)
+        }
       },
 
-      UpdateProduct(item){
-        this.$router.push({ path: '/product/update', query: { product: item }})
+      UpdateProduct(item) {
+        this.$router.push({path: '/product/update', query: {product: item}})
       }
 
     },
 
-    mounted()
-    {
+    mounted() {
       this.getAllProduct(this.page)
     }
   }

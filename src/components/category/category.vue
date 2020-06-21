@@ -96,6 +96,9 @@
 </template>
 
 <script>
+  import {getOneClass, UpdateOneClass, AddOneClass, UpdateTwoClass, AddTwoClass, FindChildClassById} from '../../api'
+  import {deleteMessage} from '../../util/PublicFunction'
+
   export default {
     name: "category",
     data() {
@@ -113,8 +116,8 @@
         formLabelWidth: '100px',
         OneClassId: '',
         isOne: true,
-        type:'',
-        oneClassId:'',
+        type: '',
+        oneClassId: '',
       }
     },
     computed: {
@@ -127,11 +130,10 @@
     },
 
     methods: {
-      getClass() {
-        this.http.get('classify1/findClassify1', '', 'get').then(res => {
-          this.Class = res.data
-          this.isOne = true
-        })
+      async getClass() {
+        const result = await getOneClass('', 'get')
+        this.Class = result
+        this.isOne = true
       },
 
       CurrentChange(currentPage) {
@@ -150,52 +152,36 @@
         this.form.imageUrl = item.image
       },
 
-      SendUpdateName() {
+      async SendUpdateName() {
         this.UpdateOneClass = false
-        const {isOne,type} = this
+        const {isOne, type} = this
         const id = this.OneClassId
         const name = this.form.className
         const image = this.form.imageUrl
-        if(isOne === true){
-          if(type !== 'add'){
-            this.http.put('classify1/update', {id, name,image}, 'put').then(res => {
-              if (res.data.code === 0) {
-                this.$message.success(res.data.msg);
-                this.getClass()
-              } else {
-                this.$message.error(res.data.msg);
-              }
-            })
-          }else{
-            this.http.post('classify1/add', {name,image}, 'post').then(res => {
-              if (res.data.code === 0) {
-                this.$message.success(res.data.msg);
-                this.getClass()
-              } else {
-                this.$message.error(res.data.msg);
-              }
-            })
+        if (isOne === true) {
+          if (type !== 'add') {
+            const UpdateOne = await UpdateOneClass({id, name, image}, 'put')
+            if (UpdateOne.code === 0) {
+              this.getClass()
+            }
+          } else {
+            const AddOne = await AddOneClass({name, image}, 'post')
+            if (AddOne.code === 0) {
+              this.getClass()
+            }
           }
-        }else {
+        } else {
           const classify1id = this.oneClassId
           if (type !== 'add') {
-            this.http.put('classify2/update', {id, name,classify1id,image}, 'put').then(res => {
-              if (res.data.code === 0) {
-                this.$message.success(res.data.msg);
-                this.GetTwoDetail(classify1id)
-              } else {
-                this.$message.error(res.data.msg);
-              }
-            })
+            const UpdateTwo = UpdateTwoClass({id, name, classify1id, image}, 'put')
+            if (UpdateTwo.code === 0) {
+              this.GetTwoDetail(classify1id)
+            }
           } else {
-            this.http.post('classify2/add', {name,classify1id,image}, 'post').then(res => {
-              if (res.data.code === 0) {
-                this.$message.success(res.data.msg);
-                this.GetTwoDetail(classify1id)
-              } else {
-                this.$message.error(res.data.msg);
-              }
-            })
+            const AddTwo = AddTwoClass({name, classify1id, image}, 'post')
+            if (AddTwo.code === 0) {
+              this.GetTwoDetail(classify1id)
+            }
           }
         }
       },
@@ -205,47 +191,26 @@
         this.TwoClass = []
       },
 
-      GetTwoDetail(item) {
+      async GetTwoDetail(item) {
         this.oneClassId = !item.id ? item : item.id
-        this.http.get('classify1/findChildById', {id: this.oneClassId}, 'get').then(res => {
-          console.log(res)
-          this.TwoClass = res.data
-          this.isOne = false
-        })
+        const result = await FindChildClassById
+        this.TwoClass = result
+        this.isOne = false
       },
 
-      DeleteClass(item) {
-        this.$confirm(`此操作将删除分类${item.name}, 是否继续?`, '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }).then(() => {
-          const isOne = this.isOne
-          if(isOne === true){
-            this.http.get('classify1/delete', {id: item.id}, 'get').then(res => {
-              if (res.data.code === 0) {
-                this.$message.success(res.data.msg);
-                this.getClass(this.page) //点击第几页
-              } else {
-                this.$message.error(res.data.msg);
-              }
-            })
-          }else{
-            this.http.get('classify2/delete', {id: item.id}, 'get').then(res => {
-              if (res.data.code === 0) {
-                this.$message.success(res.data.msg);
-                this.GetTwoDetail(this.oneClassId) //点击第几页
-              } else {
-                this.$message.error(res.data.msg);
-              }
-            })
+      async DeleteClass(item) {
+        const isOne = this.isOne
+        if (isOne === true) {
+          const deleteOne = await deleteMessage(item.id, 'oneClass')
+          if (deleteOne.code === 0) {
+            this.getClass(this.page) //点击第几页
           }
-        }).catch(() => {
-          this.$message({
-            type: 'info',
-            message: '已取消删除'
-          });
-        });
+        } else {
+          const deleteTwo = deleteMessage(item.id, 'twoClass')
+          if (deleteTwo.code === 0) {
+            this.GetTwoDetail(this.oneClassId) //点击第几页
+          }
+        }
       },
 
       handleAvatarSuccess(res, file) {
@@ -266,7 +231,7 @@
       },
 
       //关闭dialog前
-      closeExpertFormDialog(done){
+      closeExpertFormDialog(done) {
         this.form.imageUrl = ''
         this.UpdateOneClass = false
         done();//done 用于关闭 Dialog
@@ -313,9 +278,11 @@
     position: relative;
     overflow: hidden;
   }
+
   .avatar-uploader .el-upload:hover {
     border-color: #409EFF;
   }
+
   .avatar-uploader-icon {
     font-size: 28px;
     color: #8c939d;
@@ -324,6 +291,7 @@
     line-height: 178px;
     text-align: center;
   }
+
   .avatar {
     width: 178px;
     height: 178px;

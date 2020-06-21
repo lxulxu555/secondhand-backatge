@@ -80,6 +80,9 @@
 </template>
 
 <script>
+  import {getAllUser, UpdateUser} from '../../api'
+  import {deleteMessage} from '../../util/PublicFunction'
+
   export default {
     name: "user",
     data() {
@@ -107,12 +110,11 @@
     },
     methods: {
 
-      getAllUser(page) {
-        this.http.get('user/findAll', {page, rows: 8}, 'get').then(res => {
-          this.AllUser = res.data.data
-          this.page = page
-          this.total = res.data.total
-        })
+      async getAllUser(page) {
+        const result = await getAllUser({page, rows: 8}, 'get')
+        this.AllUser = result.data
+        this.page = page
+        this.total = result.total
       },
 
       CurrentChange(currentPage) {
@@ -134,49 +136,29 @@
         this.form.region = val
       },
 
-      DeleteUser(item) {
-        this.$confirm(`此操作将删除${item.username}, 是否继续?`, '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }).then(() => {
-          const ids = item.id
-          this.http.delete('user/delete', {ids}, 'delete').then(res => {
-            if (res.data.code === 0) {
-              this.$message.success(res.data.msg);
-              this.getAllUser(this.page)
-            } else {
-              this.$message.error(res.data.msg);
-            }
-          })
-        }).catch(() => {
-          this.$message({
-            type: 'info',
-            message: '已取消删除'
-          });
-        });
+      async DeleteUser(item) {
+        const id = item.id
+        const result = await deleteMessage(id)
+        if (result.code === 0) {
+          this.getAllUser(this.page)
+        }
       },
 
-      updateUser() {
+      async updateUser() {
         const {id, username, email, phone, region} = this.form
         const sex = region === 'admin' ? '管' : '男'
-        this.http.put('user/update', {id, username, phone, email, sex}, 'put').then(res => {
-          if (res.data.code === 0) {
-            this.$message.success(res.data.msg);
-            this.getAllUser(this.page)
-          } else {
-            this.$message.error(res.data.msg);
-          }
-          this.$refs["updateUser"].resetFields();
-          this.dialogFormVisible = false
-        })
+        const result = await UpdateUser({id, username, phone, email, sex}, 'put')
+        if (result.code === 0) {
+          this.getAllUser(this.page)
+        }
+        this.$refs["updateUser"].resetFields();
+        this.dialogFormVisible = false
+      }
+    },
+
+    mounted() {
+      this.getAllUser(this.page)
     }
-  }
-  ,
-  mounted()
-  {
-    this.getAllUser(this.page)
-  }
   }
 </script>
 
