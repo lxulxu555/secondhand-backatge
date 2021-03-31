@@ -9,6 +9,8 @@ import role from "../components/role/role";
 import jurisdiction from "../components/jurisdiction/jurisdiction";
 import product from "../components/category/product";
 import updateproduct from "../components/category/updateproduct";
+import approvepost from "../components/approvepost/approvepost.vue";
+import approvejob from "../components/approvejob/approvejob.vue";
 
 Vue.use(Router)
 
@@ -63,6 +65,16 @@ const router = new Router({
           path: '/product/update',
           name: '/product',
           component: updateproduct,
+        },
+        {
+          path: '/approve-post',
+          name: '/approve-post',
+          component: approvepost,
+        },
+        {
+          path: '/approve-job',
+          name: '/approve-job',
+          component: approvejob,
         },
       ]
     },

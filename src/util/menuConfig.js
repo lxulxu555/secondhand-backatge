@@ -35,6 +35,16 @@ const menuList = [
     title : '权限管理',
     key : '/jurisdiction',
     icon : 'el-icon-key'
+  },
+  {
+    title : '资讯审批管理',
+    key : '/approve-post',
+    icon : 'el-icon-warning-outline'
+  },
+  {
+    title : '兼职审批管理',
+    key : '/approve-job',
+    icon : 'el-icon-s-tools'
   }
 ]
 

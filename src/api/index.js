@@ -44,6 +44,17 @@ export const UpdateUser = (data, method) => {
   })
 }
 
+export const UpdateProduct = (data, method) => {
+  return http.put('goods/update', data, method).then(res => {
+    return res.data
+  })
+}
+
+export const UpdateJob = (data, method) => {
+  return http.put('part-time', data, method).then(res => {
+    return res.data
+  })
+}
 //获取所有管理员
 export const getAdmin = (data, method) => {
   return http.get('user/findAll', data, method).then(res => {
@@ -127,6 +138,12 @@ export const FindChildClassById = (data, method) => {
 //获取所有商品
 export const getAllProduct = (data, method) => {
   return http.get('goods/findByPage', data, method).then(res => {
+    return res.data
+  })
+}
+
+export const getAllJob = (data, method) => {
+  return http.get('part-time', data, method).then(res => {
     return res.data
   })
 }
